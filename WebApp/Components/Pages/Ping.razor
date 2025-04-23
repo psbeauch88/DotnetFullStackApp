@@ -1,0 +1,30 @@
+@page "/ping"
+@inject HttpClient Http
+
+<h3>Ping Test</h3>
+
+<p><strong>Public:</strong> @publicPing</p>
+<p><strong>Secure:</strong> @securePing</p>
+
+@code {
+    string publicPing = "Loading...";
+    string securePing = "Loading...";
+
+    protected override async Task OnInitializedAsync()
+    {
+        publicPing = await Http.GetStringAsync("http://localhost:5028/ping");
+
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:5028/ping/secure");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "your-jwt-token");
+
+            var response = await Http.SendAsync(request);
+            securePing = await response.Content.ReadAsStringAsync();
+        }
+        catch (Exception ex)
+        {
+            securePing = $"Error: {ex.Message}";
+        }
+    }
+}
